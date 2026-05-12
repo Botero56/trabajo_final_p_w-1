@@ -1,13 +1,354 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Tareas</title>
-</head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow — Gestión de Proyectos</title>
 
+  <!-- Google Fonts: Sora (display) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
 <body>
-    <h1>Gestor de tareas</h1>
+
+  <!-- ═══════════════════════════════════════════════
+       BARRA DE NAVEGACIÓN GLOBAL
+  ═══════════════════════════════════════════════ -->
+  <header class="topbar" id="topbar">
+    <div class="topbar__brand" id="nav-home">
+      <span class="topbar__logo">◈</span>
+      <span class="topbar__name">TaskFlow</span>
+    </div>
+    <nav class="topbar__nav" id="topbar-nav">
+      <!-- Los botones se inyectan dinámicamente según la vista -->
+    </nav>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════
+       CONTENEDOR PRINCIPAL DE VISTAS
+  ═══════════════════════════════════════════════ -->
+  <main class="app" id="app">
+
+    <!-- ───────────────────────────────────────────
+         VISTA 1 · Home / Crear Proyecto
+    ─────────────────────────────────────────────── -->
+    <section class="view" id="view-home">
+      <div class="hero">
+        <div class="hero__badge">v1.0</div>
+        <h1 class="hero__title">Gestiona tus<br /><em>proyectos</em></h1>
+        <p class="hero__sub">Crea, organiza y entrega con claridad.</p>
+      </div>
+
+      <div class="card form-card" id="create-project-form-card">
+        <h2 class="card__title">Nuevo proyecto</h2>
+        <form id="form-create-project" novalidate>
+          <div class="field">
+            <label class="field__label" for="proj-nombre">Nombre del proyecto *</label>
+            <input
+              class="field__input"
+              type="text"
+              id="proj-nombre"
+              placeholder="Ej: App de delivery"
+              maxlength="255"
+              required
+            />
+            <span class="field__error" id="err-proj-nombre"></span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="proj-desc">Descripción</label>
+            <textarea
+              class="field__input field__textarea"
+              id="proj-desc"
+              placeholder="¿De qué trata este proyecto?"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary" id="btn-create-project">
+              <span class="btn__icon">+</span> Crear proyecto
+            </button>
+            <button type="button" class="btn btn--ghost" id="btn-go-list">
+              Ver proyectos
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────────
+         VISTA 2 · Lista de Proyectos
+    ─────────────────────────────────────────────── -->
+    <section class="view hidden" id="view-list">
+      <div class="view-header">
+        <div>
+          <h2 class="view-header__title">Proyectos</h2>
+          <p class="view-header__sub" id="projects-count">Cargando…</p>
+        </div>
+        <button class="btn btn--primary btn--sm" id="btn-list-new-project">
+          + Nuevo proyecto
+        </button>
+      </div>
+
+      <div class="projects-grid" id="projects-grid">
+        <!-- Las tarjetas se generan dinámicamente -->
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────────
+         VISTA 3 · Kanban de un Proyecto
+    ─────────────────────────────────────────────── -->
+    <section class="view hidden" id="view-project">
+      <div class="view-header">
+        <div>
+          <h2 class="view-header__title" id="kanban-project-name">Proyecto</h2>
+          <p class="view-header__sub" id="kanban-project-desc"></p>
+        </div>
+        <div class="view-header__actions">
+          <button class="btn btn--ghost btn--sm" id="btn-kanban-summary">
+            📊 Resumen
+          </button>
+          <button class="btn btn--primary btn--sm" id="btn-kanban-new-task">
+            + Nueva tarea
+          </button>
+        </div>
+      </div>
+
+      <div class="kanban" id="kanban-board">
+        <!-- Columna: Pendiente -->
+        <div class="kanban__col" id="col-pendiente">
+          <div class="kanban__col-header kanban__col-header--pending">
+            <span class="kanban__col-dot"></span>
+            <h3>Pendiente</h3>
+            <span class="kanban__col-count" id="count-pendiente">0</span>
+          </div>
+          <div class="kanban__cards" id="cards-pendiente"></div>
+        </div>
+
+        <!-- Columna: En proceso -->
+        <div class="kanban__col" id="col-en_proceso">
+          <div class="kanban__col-header kanban__col-header--progress">
+            <span class="kanban__col-dot"></span>
+            <h3>En proceso</h3>
+            <span class="kanban__col-count" id="count-en_proceso">0</span>
+          </div>
+          <div class="kanban__cards" id="cards-en_proceso"></div>
+        </div>
+
+        <!-- Columna: Finalizada -->
+        <div class="kanban__col" id="col-finalizada">
+          <div class="kanban__col-header kanban__col-header--done">
+            <span class="kanban__col-dot"></span>
+            <h3>Finalizada</h3>
+            <span class="kanban__col-count" id="count-finalizada">0</span>
+          </div>
+          <div class="kanban__cards" id="cards-finalizada"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────────
+         VISTA 4 · Detalle de Tarea
+    ─────────────────────────────────────────────── -->
+    <section class="view hidden" id="view-task-detail">
+      <div class="view-header">
+        <h2 class="view-header__title">Detalle de tarea</h2>
+      </div>
+
+      <div class="card form-card">
+        <form id="form-task-detail" novalidate>
+          <input type="hidden" id="detail-task-id" />
+
+          <div class="field">
+            <label class="field__label">Nombre</label>
+            <p class="field__readonly" id="detail-task-nombre">—</p>
+          </div>
+          <div class="field">
+            <label class="field__label">Descripción</label>
+            <p class="field__readonly field__readonly--multiline" id="detail-task-desc">—</p>
+          </div>
+          <div class="field">
+            <label class="field__label">Fecha límite</label>
+            <p class="field__readonly" id="detail-task-fecha">—</p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="detail-estado">Estado *</label>
+            <select class="field__input field__select" id="detail-estado" required>
+              <option value="pendiente">Pendiente</option>
+              <option value="en_proceso">En proceso</option>
+              <option value="finalizada">Finalizada</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="detail-persona">Persona asignada</label>
+            <input
+              class="field__input"
+              type="text"
+              id="detail-persona"
+              placeholder="Nombre del responsable"
+              maxlength="255"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary">
+              ✓ Actualizar tarea
+            </button>
+            <button type="button" class="btn btn--danger btn--sm" id="btn-detail-delete">
+              🗑 Eliminar tarea
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+   
+    <section class="view hidden" id="view-create-task">
+      <div class="view-header">
+        <h2 class="view-header__title">Nueva tarea</h2>
+        <p class="view-header__sub" id="create-task-project-name"></p>
+      </div>
+
+      <div class="card form-card">
+        <form id="form-create-task" novalidate>
+          <input type="hidden" id="new-task-project-id" />
+
+          <div class="field">
+            <label class="field__label" for="task-nombre">Nombre *</label>
+            <input
+              class="field__input"
+              type="text"
+              id="task-nombre"
+              placeholder="Ej: Diseñar pantalla de login"
+              maxlength="255"
+              required
+            />
+            <span class="field__error" id="err-task-nombre"></span>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="task-desc">Descripción</label>
+            <textarea
+              class="field__input field__textarea"
+              id="task-desc"
+              placeholder="Describe la tarea con detalle…"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field__label" for="task-fecha">Fecha límite</label>
+              <input
+                class="field__input"
+                type="date"
+                id="task-fecha"
+              />
+            </div>
+            <div class="field">
+              <label class="field__label" for="task-estado">Estado</label>
+              <select class="field__input field__select" id="task-estado">
+                <option value="pendiente">Pendiente</option>
+                <option value="en_proceso">En proceso</option>
+                <option value="finalizada">Finalizada</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="task-persona">Persona asignada</label>
+            <input
+              class="field__input"
+              type="text"
+              id="task-persona"
+              placeholder="Nombre del responsable"
+              maxlength="255"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary">
+              <span class="btn__icon">+</span> Guardar tarea
+            </button>
+            <button type="button" class="btn btn--ghost" id="btn-create-task-cancel">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+
+    <section class="view hidden" id="view-summary">
+      <div class="view-header">
+        <div>
+          <h2 class="view-header__title" id="summary-project-name">Resumen</h2>
+          <p class="view-header__sub">Estadísticas del proyecto</p>
+        </div>
+        <div class="view-header__actions">
+          <button class="btn btn--ghost btn--sm" id="btn-summary-back">
+            ← Volver al tablero
+          </button>
+          <button class="btn btn--ghost btn--sm" id="btn-summary-home">
+             Inicio
+          </button>
+        </div>
+      </div>
+
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-card__value" id="stat-total">0</span>
+          <span class="stat-card__label">Total</span>
+        </div>
+        <div class="stat-card stat-card--pending">
+          <span class="stat-card__value" id="stat-pending">0</span>
+          <span class="stat-card__label">Pendientes</span>
+        </div>
+        <div class="stat-card stat-card--progress">
+          <span class="stat-card__value" id="stat-progress">0</span>
+          <span class="stat-card__label">En proceso</span>
+        </div>
+        <div class="stat-card stat-card--done">
+          <span class="stat-card__value" id="stat-done">0</span>
+          <span class="stat-card__label">Finalizadas</span>
+        </div>
+      </div>
+
     
+      <div class="card progress-card">
+        <div class="progress-card__header">
+          <h3>Progreso general</h3>
+          <span class="progress-card__pct" id="summary-pct">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-bar__fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      
+      <div class="card upcoming-card">
+        <h3 class="card__title"> Próximas a vencer</h3>
+        <div id="upcoming-tasks">
+          <p class="empty-msg">Sin tareas próximas a vencer.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+
+  <div class="loader-overlay hidden" id="loader">
+    <div class="loader-spinner"></div>
+  </div>
+
+  <script src="scripts.js"></script>
 </body>
 </html>
